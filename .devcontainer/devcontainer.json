@@ -7,5 +7,6 @@
     "--device=/dev/net/tun",
     "--security-opt=seccomp=unconfined",
     "--security-opt=apparmor=unconfined"
-  ]
+  ],
+  "postCreateCommand": "sudo bash /workspaces/binaopenv/.devcontainer/setup.sh 2>&1 | tee /tmp/setup.log"
 }
