@@ -1,10 +1,10 @@
 const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const proxy = require('express-http-proxy');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Allow all CORS
+// CORS headers
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', '*');
@@ -13,22 +13,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Proxy everything to Binance Testnet
-app.use(
-  '/',
-  createProxyMiddleware({
-    target: 'https://testnet.binance.vision',
-    changeOrigin: true,
-    secure: true,
-    on: {
-      error: (err, req, res) => {
-        console.error('Proxy error:', err.message);
-        res.status(502).send('Proxy Error');
-      },
-    },
-  })
-);
+// Proxy to Binance Testnet
+app.use('/', proxy('https://testnet.binance.vision'));
 
 app.listen(PORT, () => {
-  console.log(`✅ Binance Testnet Proxy running on port ${PORT}`);
+  console.log(`Proxy running on port ${PORT}`);
 });
