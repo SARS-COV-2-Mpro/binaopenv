@@ -1,15 +1,23 @@
-FROM node:20-bookworm-slim
+# Use official lightweight Node.js image
+FROM node:18-alpine
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    openvpn iproute2 curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
+# Set working directory inside container
 WORKDIR /app
-COPY package.json ./
+
+# Copy dependency files first (for caching)
+COPY package*.json ./
+
+# Install only production dependencies
 RUN npm install --omit=dev
 
-COPY index.js vpn.ovpn start.sh ./
-RUN chmod +x start.sh
+# Copy the rest of the app
+COPY . .
 
-EXPOSE 3000
-CMD ["./start.sh"]
+# Tell Docker which port the app uses
+EXPOSE 8080
+
+# Set environment variable for port
+ENV PORT=8080
+
+# Start the app
+CMD ["node", "index.js"]
