@@ -15,14 +15,17 @@ app.use((req, res, next) => {
 app.get('/health', (req, res) => res.status(200).send('OK'));
 app.get('/', (req, res) => res.status(200).send('Binance Futures Testnet Proxy ✅'));
 
-// ✅ FUTURES endpoints -> Futures Testnet
 app.use(
   '/fapi',
   createProxyMiddleware({
     target: 'https://testnet.binancefuture.com',
     changeOrigin: true,
     secure: true,
+    onProxyRes: (proxyRes, req, res) => {
+      console.log(`[proxy] ${req.method} ${req.path} -> ${proxyRes.statusCode} (${proxyRes.headers['content-type']})`);
+    },
     onError: (err, req, res) => {
+      console.error('Proxy error:', err.message);
       res.status(502).json({ error: 'Proxy error', message: err.message });
     },
   })
