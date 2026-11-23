@@ -1,38 +1,25 @@
-const express = require('express');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const express = require("express");
+const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8000;
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  if (req.method === 'OPTIONS') return res.sendStatus(200);
-  next();
-});
-
-app.get('/health', (req, res) => res.status(200).send('OK'));
-app.get('/', (req, res) => res.status(200).send('Binance Futures Testnet Proxy ✅'));
-
+// Proxy all requests to Bybit API
 app.use(
-  '/fapi',
+  "/",
   createProxyMiddleware({
-    target: 'https://testnet.binancefuture.com',
+    target: "https://api.bybit.com",
     changeOrigin: true,
     secure: true,
-    onProxyRes: (proxyRes, req, res) => {
-      console.log(`[proxy] ${req.method} ${req.path} -> ${proxyRes.statusCode} (${proxyRes.headers['content-type']})`);
-    },
-    onError: (err, req, res) => {
-      console.error('Proxy error:', err.message);
-      res.status(502).json({ error: 'Proxy error', message: err.message });
+    on: {
+      proxyReq: (proxyReq, req) => {
+        // Forward the original host header
+        proxyReq.setHeader("host", "api.bybit.com");
+      },
     },
   })
 );
 
-app.use((req, res) => res.status(404).json({ error: 'Not found', path: req.path }));
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Futures Proxy running on port ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Bybit proxy running on port ${PORT}`);
 });
